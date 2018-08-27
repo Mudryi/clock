@@ -100,8 +100,8 @@ int main(int argc, char** argv)
 
 	int hours, minutes;
 
-	Mat src, src_black, src_gray, edges;
-	src = imread("./Images/watchtest10.jpg");
+	Mat src, src_gray, edges;
+	src = imread("./Images/test2.jpg");
 
 	std::map<vector<int>, int> numbers;
 	numbers[{1, 1, 1, 0, 1, 1, 1}] = 0;
@@ -115,41 +115,26 @@ int main(int argc, char** argv)
 	numbers[{1, 1, 1, 1, 1, 1, 1}] = 8;
 	numbers[{1, 1, 1, 1, 0, 1, 1}] = 9;
 
-	std::map<int, vector<int>> numbersBin;
-	numbersBin[0] = { 1, 1, 1, 0, 1, 1, 1 };
-	numbersBin[1] = { 0, 0, 1, 0, 0, 1, 0 };
-	numbersBin[2] = { 1, 0, 1, 1, 1, 0, 1 };
-	numbersBin[3] = { 1, 0, 1, 1, 0, 1, 1 };
-	numbersBin[4] = { 0, 1, 1, 1, 0, 1, 0 };
-	numbersBin[5] = { 1, 1, 0, 1, 0, 1, 1 };
-	numbersBin[6] = { 1, 1, 0, 1, 1, 1, 1 };
-	numbersBin[7] = { 1, 0, 1, 0, 0, 1, 0 };
-	numbersBin[8] = { 1, 1, 1, 1, 1, 1, 1 };
-	numbersBin[9] = { 1, 1, 1, 1, 0, 1, 1 };
-
 	imshow("Video", src);
 	waitKey(0);
-
 	resize(src, src, Size(640, 480));
-	cv::cvtColor(src, src_black, COLOR_BGR2GRAY);
-	cv::GaussianBlur(src_black, src_gray, cv::Size(7, 7), 0);
+	cv::cvtColor(src, src_gray, COLOR_BGR2GRAY);
+	cv::GaussianBlur(src_gray, src_gray, cv::Size(7, 7), 0);
 	cv::Canny(src_gray, edges, 50, 200);
 
-	std::vector<std::vector<cv::Point>> contours1;
-	std::vector<cv::Vec4i> hierarchy1;
+	std::vector<std::vector<cv::Point>> contoursALL;
+	std::vector<cv::Vec4i> hierarchyALL;
 
-	findContours(edges, contours1, hierarchy1, cv::RetrievalModes::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
-	removeSmallContours(contours1, hierarchy1);
-	sort(contours1.begin(), contours1.end(), compareContourAreas);
-
-
+	findContours(edges, contoursALL, hierarchyALL, cv::RetrievalModes::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+	removeSmallContours(contoursALL, hierarchyALL);
+	sort(contoursALL.begin(), contoursALL.end(), compareContourAreas);
 
 	vector<Point> ekran;
-	for (auto i = 0; i < contours1.size(); i++) {
-		double perimetr = arcLength(contours1[i], true);
-		approxPolyDP(contours1[i], contours1[i], 0.05*perimetr, true);
-		if (contourArea(contours1[i]) / (minAreaRect(contours1[i]).size.height*minAreaRect(contours1[i]).size.width) > 0.8) {
-			ekran = contours1[i];
+	for (auto i = 0; i < contoursALL.size(); i++) {
+		double perimetr = arcLength(contoursALL[i], true);
+		approxPolyDP(contoursALL[i], contoursALL[i], 0.05*perimetr, true);
+		if (contourArea(contoursALL[i]) / (minAreaRect(contoursALL[i]).size.height*minAreaRect(contoursALL[i]).size.width) > 0.8) {
+			ekran = contoursALL[i];
 			break;
 		}
 	}
@@ -159,17 +144,16 @@ int main(int argc, char** argv)
 	Mat clock = src(boundingRect(ekran));
 	imshow("Video", clock);
 	waitKey(0);
+
 	cvtColor(clock, clock, COLOR_BGR2GRAY);
-	//threshold(clock, clock, 55, 255, cv::THRESH_BINARY);
-	threshold(clock, clock, 90, 255, cv::THRESH_BINARY);
+	threshold(clock, clock, 75, 255, cv::THRESH_BINARY);
 	morphologyEx(clock, clock, MORPH_DILATE, cv::getStructuringElement(MORPH_RECT, cv::Size(3, 3)));
 	morphologyEx(clock, clock, MORPH_OPEN, cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3)));
-
 
 	std::vector<std::vector<cv::Point>> contours;
 	std::vector<cv::Vec4i> hierarchy;
 
-	Mat A, DD = cv::Mat::zeros(clock.size(), CV_8UC3);
+	Mat A = cv::Mat::zeros(clock.size(), CV_8UC3);
 
 	findContours(clock, contours, hierarchy, cv::RetrievalModes::RETR_CCOMP, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 
@@ -185,15 +169,8 @@ int main(int argc, char** argv)
 			i++;
 	}
 
-	for (size_t i = 0; i < contours.size(); i++)
-	{
-		cv::Scalar color = cv::Scalar(0, 255, 0);
-		drawContours(DD, contours, (int)i, color, 2, cv::LINE_4, hierarchy, 0, cv::Point());
-	}
-
-
 	vector<Rect> boundRect(contours.size());
-	Mat B = cv::Mat::zeros(clock.size(), CV_8UC3);
+	Mat Rects = cv::Mat::zeros(clock.size(), CV_8UC3);
 
 	for (size_t i = 0; i < contours.size();)
 	{
@@ -207,44 +184,42 @@ int main(int argc, char** argv)
 
 
 
-	Mat AA = cv::Mat::zeros(src.size(), CV_8UC3);
+	Mat ContoursIMG= cv::Mat::zeros(src.size(), CV_8UC3);
 
 	for (size_t i = 0; i < contours.size(); i++)
 	{
 		cv::Scalar color = cv::Scalar(0, 255, 0);
-		drawContours(AA, contours, (int)i, color, 2, cv::LINE_4, hierarchy, 0, cv::Point());
+		drawContours(ContoursIMG, contours, (int)i, color, 2, cv::LINE_4, hierarchy, 0, cv::Point());
 	}
 
 	for (size_t i = 0; i < contours.size(); i++)
 	{
 		cv::Scalar color = cv::Scalar(0, 0, 255);
 		boundRect[i] = boundingRect(contours[i]);
-		rectangle(B, boundRect[i].tl(), boundRect[i].br(), color, 2);
+		rectangle(Rects, boundRect[i].tl(), boundRect[i].br(), color, 2);
 	}
-
 
 
 	vector<int> time;
 	for (int i = 0; i < contours.size(); i++) {
 
-		Mat C = clock(boundingRect(contours[i]));
-		Mat cols = cv::Mat::zeros(C.rows, int(C.cols / 10), CV_8UC1);
-		hconcat(C, cols, C);
-		hconcat(cols, C, C);
+		Mat numberIMG = clock(boundingRect(contours[i]));
+		Mat cols = cv::Mat::zeros(numberIMG.rows, int(numberIMG.cols / 10), CV_8UC1);
+		hconcat(numberIMG, cols, numberIMG);
+		hconcat(cols, numberIMG, numberIMG);
 
-		imshow("Video", C);
+		imshow("Video", numberIMG);
 		waitKey(0);
 
-		vector<Rect> parts = getparts(C);
+		vector<Rect> parts = getparts(numberIMG);
 		std::vector<int> number(7);
 		for (int j = 0; j < 7; j++) {
-			Mat D = C(parts[j]);
-			double part = countNonZero(D);
+			Mat partIMG = numberIMG(parts[j]);
+			double part = countNonZero(partIMG);
 			if (part / double(parts[j].area()) > 0.5) {
 				number[j] = 1;
 			}
 		}
-
 		cout << numbers[number];
 		time.push_back(numbers[number]);
 	}

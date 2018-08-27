@@ -136,6 +136,7 @@
 //	vector<int> arr_of_hours(11);
 //	vector<int> arr_of_minutes(11);
 //	bool flag_hour = 0;
+//	
 //	VideoCapture cap(0); // open the default camera
 //	if (!cap.isOpened())  // check if we succeeded
 //		return -1;
@@ -153,27 +154,21 @@
 //		cvtColor(frame, watch_grey, COLOR_BGR2GRAY);
 //
 //		GaussianBlur(watch_grey, watch_grey, cv::Size(9, 9), 3);
-//		//threshold(watch_grey, src, 110, 255, cv::THRESH_BINARY_INV);
 //		adaptiveThreshold(watch_grey, src, 255, ADAPTIVE_THRESH_GAUSSIAN_C, 0, 11, 5);
 //
 //		
 //		Mat element = getStructuringElement(0, Size(2 * 3 + 1, 2 * 3 + 1), Point(3, 3));
-//		//morphologyEx(src, src, MORPH_OPEN, element);
-//
-//		//GaussianBlur(src, src, Size(3, 3), 1, 1);
 //		morphologyEx(src, src, MORPH_DILATE, getStructuringElement(1, Size(2 * 1 + 1, 2 * 1 + 1), Point(1, 1)));
-//
 //
 //		Canny(src, edges, 50, 200, 3);
 //		morphologyEx(edges, edges, MORPH_CLOSE, element);
-//		
 //
 //		std::vector<std::vector<cv::Point>> contours;
 //		std::vector<cv::Vec4i> hierarchy;
 //
-//		Mat A = cv::Mat::zeros(src.size(), CV_8UC3);
-//		Mat B = cv::Mat::zeros(src.size(), CV_8UC3);
-//		Mat C = cv::Mat::zeros(src.size(), CV_8UC3);
+//		Mat Contours1 = cv::Mat::zeros(src.size(), CV_8UC3);
+//		Mat Contours2 = cv::Mat::zeros(src.size(), CV_8UC3);
+//		Mat Contours3 = cv::Mat::zeros(src.size(), CV_8UC3);
 //		findContours(edges, contours, hierarchy, cv::RetrievalModes::RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 //
 //		removeSmallContours(contours, hierarchy);
@@ -183,8 +178,8 @@
 //			cv::Scalar color = cv::Scalar(0, 255, 0);
 //			cv::Scalar color2 = cv::Scalar(255, 0, 0);
 //			
-//			drawContours(A, contours, (int)i, color2, CV_FILLED);
-//			drawContours(A, contours, (int)i, color, 5, cv::LINE_4, hierarchy, 0, cv::Point());
+//			drawContours(Contours1, contours, (int)i, color2, CV_FILLED);
+//			drawContours(Contours1, contours, (int)i, color, 5, cv::LINE_4, hierarchy, 0, cv::Point());
 //		}
 //
 //
@@ -202,7 +197,7 @@
 //		for (size_t i = 0; i < contours.size(); i++)
 //		{
 //			cv::Scalar color = cv::Scalar(0, 255, 0);
-//			drawContours(B, contours, (int)i, color, 5, cv::LINE_4, hierarchy, 0, cv::Point());
+//			drawContours(Contours2, contours, (int)i, color, 5, cv::LINE_4, hierarchy, 0, cv::Point());
 //		}
 //
 //	
@@ -220,51 +215,27 @@
 //		for (size_t i = 0; i < contours.size(); i++)
 //		{
 //			cv::Scalar color = cv::Scalar(0, 255, 0);
-//			drawContours(C, contours, (int)i, color, 3, cv::LINE_4, hierarchy, 0, cv::Point());
+//			drawContours(Contours3, contours, (int)i, color, 3, cv::LINE_4, hierarchy, 0, cv::Point());
 //		}
 //
 //		vector<Vec4i> linesP;
 //
-//		GaussianBlur(C, C, Size(3, 3), 0, 0);
-//		cvtColor(C, C, COLOR_BGR2GRAY);
+//		GaussianBlur(Contours3, Contours3, Size(3, 3), 0, 0);
+//		cvtColor(Contours3, Contours3, COLOR_BGR2GRAY);
 //
 //
-//		HoughLinesP(C, linesP, 1, CV_PI / 180, 90, 70, 15); // runs the actual detection
-//
-//
-//
+//		HoughLinesP(Contours3, linesP, 1, CV_PI / 180, 90, 70, 15); // runs the actual detection
 //
 //		for (size_t i = 0; i < linesP.size(); i++) {
 //			Vec4i l = linesP[i];
 //			Point pt1(l[0], l[1]);
 //			Point pt2(l[2], l[3]);
-//			//line(frame, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 255, 0), 3, LINE_AA);
 //		}
 //
 //		size_t maxi = 0;
 //		size_t mini = 0;
 //
 //		if (linesP.size() > 1) {
-//
-//			/*for (size_t i = 0; i < linesP.size(); i++) {
-//				Vec4i l = linesP[i];
-//				Point pt11(l[0], l[1]);
-//				Point pt12(l[2], l[3]);
-//				for (size_t j = 0; j < linesP.size();) {
-//					if (i != j) {
-//						Vec4i m = linesP[j];
-//						Point pt21(m[0], m[1]);
-//						Point pt22(m[2], m[3]);
-//						double A1 = (pt12.y - pt11.y) / static_cast<float>(pt12.x - pt11.x);
-//						double A2 = (pt22.y - pt21.y) / static_cast<float>(pt22.x - pt21.x);
-//						if (abs(A1 - A2) < 0.2)
-//							linesP.erase(linesP.begin() + j);
-//						else
-//							++j;
-//					}
-//				}
-//			}
-//			*/
 //
 //			Point p1(linesP[0][0], linesP[0][1]);
 //			Point p2(linesP[0][2], linesP[0][3]);
@@ -318,14 +289,6 @@
 //			angle = abs(angle) + 180;
 //			minute = angle / 6;
 //		}
-//		//else if (midlle1.y < Y && midlle1.x > X ) {
-//		//	angle = abs(angle);
-//		//	minute = angle / 6; 
-//		//}
-//		//else if (midlle1.y > Y && midlle1.x < X) {
-//		//	angle = abs(angle) + 180;
-//		//	minute = angle / 6;
-//		//}
 //		else {
 //			angle = abs(angle);
 //			minute = angle / 6;
@@ -335,12 +298,6 @@
 //		if ((midlle2.y < Y && midlle2.x < X) || (midlle2.y > Y && midlle2.x < X)) {
 //			angle2 = abs(angle2) + 180;
 //		}
-//		//else if (midlle2.y < Y && midlle2.x > X) {
-//		//	angle2 = abs(angle2);
-//		//}
-//		//else if (midlle2.y > Y && midlle2.x < X) {
-//		//	angle2 = abs(angle2) + 180;
-//		//}
 //		else {
 //			angle2 = abs(angle2);
 //		}
@@ -409,12 +366,6 @@
 //		OutPutDigitalWatch(frame, hour, minute);
 //
 //	}
-//
-//	//Mat final = Mat::zeros(frame.rows * 2, frame.cols * 2, CV_8UC3);
-//	/*frame.copyTo(final(Rect(0, 0, frame.rows, frame.cols)));
-//	A.copyTo(final(Rect(frame.rows, 0, frame.rows, frame.cols)));
-//	B.copyTo(final(Rect(0, frame.cols, frame.rows, frame.cols)));
-//	C.copyTo(final(Rect(frame.rows, frame.cols, frame.rows, frame.cols)));*/
 //		imshow("Video", frame);
 //
 //		// Press 'c' to escape

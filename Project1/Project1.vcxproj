@@ -19,9 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Countors.cpp" />
-    <ClCompile Include="Source.cpp" />
-    <ClCompile Include="video.cpp" />
+    <ClCompile Include="digital.cpp" />
+    <ClCompile Include="detect_by_contours.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
